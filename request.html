@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#14181c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SE Request">
+<link rel="manifest" href='data:application/manifest+json,{"name":"MagTec Service Order Request","short_name":"SE Request","start_url":".","display":"standalone","background_color":"%2314181c","theme_color":"%2314181c"}'>
+<title>MagTec Service Order Request</title>
+<style>
+  :root{
+    --bg:#14181c;
+    --panel:#1c2127;
+    --panel-line:#2b323b;
+    --text:#eef1f4;
+    --sub:#8d98a3;
+    --amber:#f5a623;
+    --amber-dim:#3a2f14;
+    --danger:#e5533d;
+    --ok:#3ba776;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    padding:20px;
+  }
+  .card{
+    width:100%;
+    max-width:520px;
+    background:var(--panel);
+    border:1px solid var(--panel-line);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .head{ padding:18px 22px 14px; border-bottom:1px solid var(--panel-line); }
+  .head .tag{
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--amber); font-weight:700;
+  }
+  .head h1{ margin:4px 0 0; font-size:19px; font-weight:600; }
+  .progress-track{ height:4px; background:var(--panel-line); width:100%; }
+  .progress-fill{ height:100%; background:var(--amber); width:0%; transition:width .25s ease; }
+  .step-count{ padding:10px 22px 0; font-size:12px; color:var(--sub); font-variant-numeric:tabular-nums; }
+  .body{
+    padding:22px; min-height:220px;
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  .q-label{ font-size:16px; font-weight:600; margin-bottom:4px; line-height:1.35; }
+  .q-help{ font-size:13px; color:var(--sub); margin-bottom:16px; line-height:1.4; }
+  input[type=text], input[type=tel], textarea{
+    width:100%; background:var(--bg); border:1px solid var(--panel-line);
+    color:var(--text); font-size:16px; padding:13px 14px;
+    border-radius:7px; font-family:inherit; outline:none;
+  }
+  input:focus, textarea:focus{ border-color:var(--amber); }
+  textarea{ min-height:110px; resize:vertical; }
+  .yn-row{ display:flex; gap:12px; }
+  .yn-btn{
+    flex:1; padding:15px; border-radius:7px; border:1px solid var(--panel-line);
+    background:var(--bg); color:var(--text); font-size:15px; font-weight:600;
+    cursor:pointer; font-family:inherit;
+  }
+  .yn-btn.primary{ background:var(--amber); color:#20180a; border-color:var(--amber); }
+  .pri-row{ display:flex; flex-direction:column; gap:10px; }
+  .pri-btn{
+    padding:16px; border-radius:7px; border:1px solid var(--panel-line);
+    background:var(--bg); color:var(--text); cursor:pointer;
+    font-family:inherit; text-align:left; display:block;
+  }
+  .pri-btn .t{ display:block; font-size:18px; font-weight:800; letter-spacing:.03em; }
+  .pri-btn .s{ display:block; font-size:12.5px; color:var(--sub); margin-top:3px; }
+  .pri-btn.low.sel{  border-color:var(--ok);     background:rgba(59,167,118,.14); }
+  .pri-btn.med.sel{  border-color:var(--amber);  background:rgba(245,166,35,.14); }
+  .pri-btn.high.sel{ border-color:var(--danger); background:rgba(229,83,61,.14); }
+  .foot{ display:flex; gap:10px; padding:16px 22px 22px; border-top:1px solid var(--panel-line); }
+  button.nav{
+    border:none; border-radius:7px; padding:14px 18px;
+    font-size:15px; font-weight:600; cursor:pointer; font-family:inherit;
+  }
+  .btn-back{ background:transparent; color:var(--sub); border:1px solid var(--panel-line); }
+  .btn-next{ background:var(--amber); color:#20180a; flex:1; }
+  .section-note{
+    display:inline-block; font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--amber); background:var(--amber-dim); padding:3px 8px;
+    border-radius:4px; margin-bottom:10px;
+  }
+  .summary-list{ font-size:13px; line-height:1.7; max-height:340px; overflow-y:auto; }
+  .summary-list .row{
+    display:flex; justify-content:space-between; gap:10px;
+    border-bottom:1px solid var(--panel-line); padding:6px 0;
+  }
+  .summary-list .k{ color:var(--sub); }
+  .summary-list .v{ text-align:right; font-weight:500; }
+  .opt-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+  .opt-list .yn-btn{ display:block; text-align:left; padding:16px; }
+  .opt-title{ display:block; font-size:18px; font-weight:800; letter-spacing:.03em; }
+  .opt-sub{ display:block; font-size:12.5px; font-weight:400; color:var(--sub); margin-top:3px; line-height:1.35; }
+  .yn-btn.primary .opt-sub{ color:#5c4715; }
+  .finish-icon{ text-align:center; font-size:40px; margin-bottom:6px; }
+  .notice{
+    border:1px solid var(--amber);
+    background:var(--amber-dim);
+    border-radius:8px;
+    padding:13px 15px;
+    font-size:13px;
+    line-height:1.45;
+    color:var(--text);
+  }
+  .notice-title{
+    display:block;
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    font-weight:700;
+    color:var(--amber);
+    margin-bottom:4px;
+  }
+  .hidden{ display:none !important; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="head">
+    <div class="tag">MagTec Alaska</div>
+    <h1>Service Order Request</h1>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="step-count" id="stepCount"></div>
+
+  <div class="body" id="body">
+    <div class="q-label">This page needs a real browser</div>
+    <div class="q-help">You are seeing this because the file is open in a preview window that cannot run the form. Open it in Safari or Chrome instead.</div>
+  </div>
+
+  <div class="foot">
+    <button class="nav btn-back" id="backBtn">Back</button>
+    <button class="nav btn-next" id="nextBtn">Next</button>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+window.addEventListener('error', function(e){
+  var b = document.getElementById('body');
+  if(b) b.innerHTML = '<div class="q-label">Something broke on startup</div>'
+      + '<div class="q-help">' + String(e.message) + '</div>';
+});
+
+var answers = {};
+var emailBody = '';
+var emailSubject = '';
+
+var STEPS = [
+  {k:'name',      label:'Your name',                    t:'text'},
+  {k:'assetNo',   label:'Asset number',                 t:'text'},
+  {k:'complaint', label:'Description of complaint',     t:'textarea', help:'What is wrong with it?'},
+  {k:'location',  label:'Where is the asset right now?', t:'text',    help:'Pad name, yard, or wherever it is sitting.'},
+  {k:'priority',  label:'Priority level',               t:'priority'},
+  {k:'phone',     label:'Contact phone number',         t:'tel'},
+  {k:'__summary', label:'Review',                       t:'summary'}
+];
+
+var i = 0;
+
+var bodyEl     = document.getElementById('body');
+var nextBtn    = document.getElementById('nextBtn');
+var backBtn    = document.getElementById('backBtn');
+var progressEl = document.getElementById('progressFill');
+var countEl    = document.getElementById('stepCount');
+
+function esc(v){
+  return String(v == null ? '' : v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function chrome(){
+  progressEl.style.width = Math.min(100, Math.round((i/STEPS.length)*100)) + '%';
+  countEl.textContent = 'Step ' + (i+1) + ' of ' + STEPS.length;
+  backBtn.style.visibility = i === 0 ? 'hidden' : 'visible';
+}
+
+function render(){
+  var step = STEPS[i];
+  chrome();
+  nextBtn.textContent = 'Next';
+  nextBtn.classList.remove('hidden');
+  backBtn.classList.remove('hidden');
+
+  var html = '';
+
+  if(step.t === 'text' || step.t === 'tel'){
+    html = '<div class="q-label">' + esc(step.label) + '</div>'
+         + (step.help ? '<div class="q-help">' + esc(step.help) + '</div>' : '')
+         + '<input type="' + step.t + '" id="input" value="' + esc(answers[step.k]) + '">';
+  }
+
+  else if(step.t === 'textarea'){
+    html = '<div class="q-label">' + esc(step.label) + '</div>'
+         + (step.help ? '<div class="q-help">' + esc(step.help) + '</div>' : '')
+         + '<textarea id="input">' + esc(answers[step.k]) + '</textarea>';
+  }
+
+  else if(step.t === 'priority'){
+    var p = answers.priority;
+    html = '<div class="q-label">' + esc(step.label) + '</div>'
+         + '<div class="q-help">How soon does this need attention?</div>'
+         + '<div class="pri-row">'
+         + '<button type="button" class="pri-btn high' + (p==='HIGH'?' sel':'') + '" data-action="pri" data-val="HIGH">'
+         +   '<span class="t">HIGH</span><span class="s">Down hard. Stopping work right now.</span></button>'
+         + '<button type="button" class="pri-btn med' + (p==='MEDIUM'?' sel':'') + '" data-action="pri" data-val="MEDIUM">'
+         +   '<span class="t">MEDIUM</span><span class="s">Still running but needs attention soon.</span></button>'
+         + '<button type="button" class="pri-btn low' + (p==='LOW'?' sel':'') + '" data-action="pri" data-val="LOW">'
+         +   '<span class="t">LOW</span><span class="s">Can wait for the next scheduled trip.</span></button>'
+         + '</div>';
+  }
+
+  else if(step.t === 'summary'){
+    var rows = [
+      ['Name',      answers.name],
+      ['Asset No',  answers.assetNo],
+      ['Complaint', answers.complaint],
+      ['Location',  answers.location],
+      ['Priority',  answers.priority],
+      ['Phone',     answers.phone]
+    ];
+    html = '<div class="section-note">Ready to send</div>'
+         + '<div class="q-help">Check this over, then send it off.</div>'
+         + '<div class="summary-list">';
+    for(var r = 0; r < rows.length; r++){
+      var v = rows[r][1];
+      html += '<div class="row"><div class="k">' + esc(rows[r][0]) + '</div>'
+            + '<div class="v">' + ((v === undefined || v === '' || v === null) ? '&mdash;' : esc(v)) + '</div></div>';
+    }
+    html += '</div>';
+    nextBtn.textContent = 'Finish';
+  }
+
+  bodyEl.innerHTML = html;
+
+  var inp = document.getElementById('input');
+  if(inp){ try { inp.focus(); } catch(e){} }
+}
+
+function saveInput(){
+  var el = document.getElementById('input');
+  if(el) answers[STEPS[i].k] = el.value;
+}
+
+function forward(){
+  var step = STEPS[i];
+  if(step.t === 'summary'){ finish(); return; }
+  if(step.t === 'priority'){
+    if(answers.priority){ i++; render(); }
+    return;
+  }
+  saveInput();
+  i++;
+  render();
+}
+
+function back(){
+  if(i === 0) return;
+  var t = STEPS[i].t;
+  if(t === 'text' || t === 'tel' || t === 'textarea') saveInput();
+  i--;
+  render();
+}
+
+document.addEventListener('click', function(ev){
+  var btn = ev.target.closest ? ev.target.closest('button') : null;
+  if(!btn) return;
+  var action = btn.getAttribute('data-action');
+  try {
+    if(btn.id === 'nextBtn'){ forward(); return; }
+    if(btn.id === 'backBtn'){ back(); return; }
+    if(action === 'pri'){
+      answers.priority = btn.getAttribute('data-val');
+      i++;
+      render();
+      return;
+    }
+    if(action === 'mailto'){ doMailto(); return; }
+    if(action === 'copy'){   doCopy(btn);  return; }
+  } catch(err){
+    bodyEl.innerHTML = '<div class="q-label">Something broke</div>'
+      + '<div class="q-help">' + esc(err && err.message ? err.message : err) + '</div>';
+  }
+});
+
+document.addEventListener('keydown', function(ev){
+  if(ev.key !== 'Enter') return;
+  var t = ev.target;
+  if(t && t.id === 'input' && t.tagName !== 'TEXTAREA'){
+    ev.preventDefault();
+    forward();
+  }
+});
+
+function finish(){
+  emailSubject = 'SE REQUEST - Asset ' + (answers.assetNo || '') + ' - ' + (answers.priority || '');
+
+  emailBody = [
+    emailSubject,
+    '',
+    'PICK THE ADDRESSES THIS NEEDS TO GO TO,',
+    'THEN COPY AND PASTE THEM INTO THE TO LINE:',
+    '',
+    'Nsrentals@magtecalaska.com',
+    'nsshop@magtecalaska.com',
+    'Ccorwin@magtecalaska.com',
+    'Pperkins@magtecalaska.com',
+    'Nsd-mgr@magtecalaska.com',
+    '',
+    '================================',
+    '',
+    'SERVICE ORDER REQUEST',
+    '',
+    'Name: ' + (answers.name || ''),
+    'Asset Number: ' + (answers.assetNo || ''),
+    'Location of Asset: ' + (answers.location || ''),
+    'Priority: ' + (answers.priority || ''),
+    'Contact Phone: ' + (answers.phone || ''),
+    '',
+    'Description of Complaint:',
+    (answers.complaint || ''),
+    '',
+    '--',
+    'Attach any photos that help show the problem before sending.'
+  ].join('\n');
+
+  nextBtn.classList.add('hidden');
+  backBtn.classList.add('hidden');
+
+  bodyEl.innerHTML =
+      '<div class="section-note">Request ready</div>'
+    + '<div class="q-help" style="margin-bottom:16px;">The addresses are listed at the top of the email. Pick the ones this request needs and paste them into the To line.</div>'
+    + '<div class="opt-list">'
+    +   '<button type="button" class="yn-btn primary" data-action="mailto">'
+    +     '<span class="opt-title">OPEN EMAIL</span>'
+    +     '<span class="opt-sub">Works on a phone or a computer. Subject and details are filled in for you.</span>'
+    +   '</button>'
+    +   '<button type="button" class="yn-btn" data-action="copy">'
+    +     '<span class="opt-title">COPY THE TEXT</span>'
+    +     '<span class="opt-sub">Paste it into an email yourself, or into a text message.</span>'
+    +   '</button>'
+    + '</div>'
+    + '<div class="notice">'
+    +   '<span class="notice-title">Before you send it</span>'
+    +   'Attach any photos that might help. A picture of the problem saves a trip.'
+    + '</div>';
+}
+
+function doMailto(){
+  window.location.href = 'mailto:?subject=' + encodeURIComponent(emailSubject)
+                       + '&body=' + encodeURIComponent(emailBody);
+}
+
+function doCopy(btn){
+  var label = btn.querySelector ? btn.querySelector('.opt-title') : null;
+  var done = function(){
+    if(label){
+      label.textContent = 'COPIED';
+      setTimeout(function(){ label.textContent = 'COPY THE TEXT'; }, 2500);
+    }
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(emailBody).then(done).catch(function(){ legacyCopy(done); });
+  } else {
+    legacyCopy(done);
+  }
+}
+
+function legacyCopy(done){
+  var ta = document.createElement('textarea');
+  ta.value = emailBody;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); done(); } catch(e){}
+  document.body.removeChild(ta);
+}
+
+render();
+
+})();
+</script>
+
+</body>
+</html>
