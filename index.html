@@ -295,7 +295,7 @@ document.addEventListener('click', function(ev){
       return;
     }
     if(action === 'mailto'){ doMailto(); return; }
-    if(action === 'copy'){   doCopy(btn);  return; }
+    if(action === 'restart'){ startOver(); return; }
   } catch(err){
     bodyEl.innerHTML = '<div class="q-label">Something broke</div>'
       + '<div class="q-help">' + esc(err && err.message ? err.message : err) + '</div>';
@@ -317,17 +317,6 @@ function finish(){
   emailBody = [
     emailSubject,
     '',
-    'PICK THE ADDRESSES THIS NEEDS TO GO TO,',
-    'THEN COPY AND PASTE THEM INTO THE TO LINE:',
-    '',
-    'Nsrentals@magtecalaska.com',
-    'nsshop@magtecalaska.com',
-    'Ccorwin@magtecalaska.com',
-    'Pperkins@magtecalaska.com',
-    'Nsd-mgr@magtecalaska.com',
-    '',
-    '================================',
-    '',
     'SERVICE ORDER REQUEST',
     '',
     'Name: ' + (answers.name || ''),
@@ -345,18 +334,20 @@ function finish(){
 
   nextBtn.classList.add('hidden');
   backBtn.classList.add('hidden');
+  progressEl.style.width = '100%';
+  countEl.textContent = 'Request ready';
 
   bodyEl.innerHTML =
       '<div class="section-note">Request ready</div>'
-    + '<div class="q-help" style="margin-bottom:16px;">The addresses are listed at the top of the email. Pick the ones this request needs and paste them into the To line.</div>'
+    + '<div class="q-help" style="margin-bottom:16px;">Open the email, review your request, and send it.</div>'
     + '<div class="opt-list">'
     +   '<button type="button" class="yn-btn primary" data-action="mailto">'
     +     '<span class="opt-title">OPEN EMAIL</span>'
-    +     '<span class="opt-sub">Works on a phone or a computer. Subject and details are filled in for you.</span>'
+    +     '<span class="opt-sub">Both recipients, the subject, and your request details are filled in for you.</span>'
     +   '</button>'
-    +   '<button type="button" class="yn-btn" data-action="copy">'
-    +     '<span class="opt-title">COPY THE TEXT</span>'
-    +     '<span class="opt-sub">Paste it into an email yourself, or into a text message.</span>'
+    +   '<button type="button" class="yn-btn" data-action="restart">'
+    +     '<span class="opt-title">START OVER</span>'
+    +     '<span class="opt-sub">Clear this request and start a new one.</span>'
     +   '</button>'
     + '</div>'
     + '<div class="notice">'
@@ -366,34 +357,16 @@ function finish(){
 }
 
 function doMailto(){
-  window.location.href = 'mailto:?subject=' + encodeURIComponent(emailSubject)
+  window.location.href = 'mailto:Nsrentals@magtecalaska.com,nsshop@magtecalaska.com?subject=' + encodeURIComponent(emailSubject)
                        + '&body=' + encodeURIComponent(emailBody);
 }
 
-function doCopy(btn){
-  var label = btn.querySelector ? btn.querySelector('.opt-title') : null;
-  var done = function(){
-    if(label){
-      label.textContent = 'COPIED';
-      setTimeout(function(){ label.textContent = 'COPY THE TEXT'; }, 2500);
-    }
-  };
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(emailBody).then(done).catch(function(){ legacyCopy(done); });
-  } else {
-    legacyCopy(done);
-  }
-}
-
-function legacyCopy(done){
-  var ta = document.createElement('textarea');
-  ta.value = emailBody;
-  ta.style.position = 'fixed';
-  ta.style.opacity = '0';
-  document.body.appendChild(ta);
-  ta.select();
-  try { document.execCommand('copy'); done(); } catch(e){}
-  document.body.removeChild(ta);
+function startOver(){
+  answers = {};
+  emailBody = '';
+  emailSubject = '';
+  i = 0;
+  render();
 }
 
 render();
